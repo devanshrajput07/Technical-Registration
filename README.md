@@ -6,7 +6,9 @@
 Method: GET
 Description: Initiate the Google OAuth flow for user authentication.
 Callback URL: Handle the Google OAuth callback to retrieve user information from Google and proceed with registration.
+
 **User Registration:**
+
 /register
 Method: POST
 Description: Register a user with Google-authenticated details.
@@ -19,6 +21,7 @@ team_member_4: { name: [provided by the user], email: [provided by the user], ro
 Authentication: Only users authenticated through Google OAuth can access this route.
 
 **Payment Integration:**
+
 /payment
 Method: POST
 Description: Initiate a payment transaction for 20 Rs.
@@ -31,7 +34,9 @@ Body: { razorpay_order_id, razorpay_payment_id, razorpay_signature }
 Method: POST
 Description: Verify the payment status using Razorpay API.
 Body: { payment_id }
-Email Notifications :
+
+**Email Notifications :**
+
 /sendRegistrationConfirmationEmail
 Method: POST
 Description: Send a registration confirmation email to the user.
