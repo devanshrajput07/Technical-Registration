@@ -35,8 +35,8 @@ passport.deserializeUser(function (obj, cb) {
 });
 
 // Serve static files from the 'public' folder
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname/auth, "public")));
 
 app.get("/login", (req, res) => {
-  res.render(path.join(__dirname, "auth/login.ejs"));
+  res.render(path.join(__dirname/auth, "auth/login.ejs"));
 });
