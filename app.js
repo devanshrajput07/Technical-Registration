@@ -8,6 +8,7 @@ import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import connectDB from './config/connectDb.js'
+import TeamModel from './user.js';
 
 dotenv.config();
 
@@ -68,16 +69,6 @@ app.get("/login", (req, res) => {
   res.render(path.join(__dirname, "login.ejs"));
 });
 
-app.get("/dashboard", (req, res) => {
-  // check if user is logged in
-  if (req.isAuthenticated()) {
-    console.log(req);
-    res.render(path.join(__dirname, "dashboard.ejs"), { user: req.user });
-  } else {
-    res.redirect("/login");
-  }
-});
-
 app.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -87,7 +78,7 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   function (req, res) {
-    res.redirect("/dashboard");
+    res.redirect("/register");
   }
 );
 
@@ -99,6 +90,66 @@ app.get("/logout", (req, res) => {
       res.redirect("/login");
     }
   });
+});
+
+app.get('/register', (req, res) => {
+  res.render(path.join(__dirname, "register.ejs"));
+});
+
+app.post('/registerteam', async (req, res) => {
+  if (req.isAuthenticated()) {
+    const { leader_name, leader_email, profile_photo_url } = req.user;
+    const { team_member_2, team_member_3, team_member_4, payment_amount } = req.body;
+    if (
+      team_member_2 &&
+      team_member_2.name &&
+      team_member_2.email &&
+      team_member_2.role &&
+      team_member_3 &&
+      team_member_3.name &&
+      team_member_3.email &&
+      team_member_3.role &&
+      team_member_4 &&
+      team_member_4.name &&
+      team_member_4.email &&
+      team_member_4.role &&
+      payment_amount
+    ) {
+      try {
+        const doc = new TeamModel({
+          leader_name: leader_name,
+          leader_email: leader_email,
+          profile_photo_url: profile_photo_url,
+          team_member_2: {
+            name: team_member_2.name,
+            email: team_member_2.email,
+            role: team_member_2.role,
+          },
+          team_member_3: {
+            name: team_member_3.name,
+            email: team_member_3.email,
+            role: team_member_3.role,
+          },
+          team_member_4: {
+            name: team_member_4.name,
+            email: team_member_4.email,
+            role: team_member_4.role,
+          },
+          payment_amount: payment_amount,
+        });
+        await doc.save();
+        const saved_user = await TeamModel.findOne({ email: leader_email });
+        res.status(200).json({ message: 'User registered successfully', user: saved_user });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    } else {
+      res.status(400).json({ error: 'Invalid Request' });
+    }
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 });
 
 app.listen(port, () => {
