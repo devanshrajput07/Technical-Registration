@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import connectDB from './config/connectDb.js'
 import TeamModel from './user.js';
-import razorpay from 'razorpay'
+import Razorpay from 'razorpay'
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 const DATABASE_URL = process.env.DATABASE_URL;
 app.set("view engine", "ejs");
 
@@ -150,25 +150,29 @@ app.post('/registerteam', async (req, res) => {
   }
 });
 
-
-
-app.post('/payment',async(req,res)=>{
-  let amount = payment_amount*100
+app.post('/payment', async (req, res) => {
+  let amount = req.body.payment_amount * 100;
   const razorpayInstance = new Razorpay({
-  key_id: process.env.Razorpay_Key_id,
-  key_secret: process.env.Razorpay_Key_secret
-})
-      let order = await instance.orders.create({
-        amount: amount,
-          currency: 'INR',
-          receipt: "receipt#1"
-      })
-      res.status(201).json({
-        success :true,
-        order,
-        amount
-      })
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET 
+  });
+  try {
+    let order = await razorpayInstance.orders.create({
+      amount: amount,
+      currency: 'INR',
+      receipt: "receipt#1"
+    });
+    res.status(201).json({
+      success: true,
+      order,
+      amount
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
