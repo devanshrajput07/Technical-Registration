@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import connectDB from './config/connectDb.js'
 import TeamModel from './user.js';
+import razorpay from 'razorpay'
 
 dotenv.config();
 
@@ -148,6 +149,8 @@ app.post('/registerteam', async (req, res) => {
     res.status(400).json({ error: 'Invalid Request' });
   }
 });
+
+
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
