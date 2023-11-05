@@ -152,6 +152,23 @@ app.post('/registerteam', async (req, res) => {
 
 
 
+app.post('/payment',async(req,res)=>{
+  let amount = payment_amount*100
+  const razorpayInstance = new Razorpay({
+  key_id: process.env.Razorpay_Key_id,
+  key_secret: process.env.Razorpay_Key_secret
+})
+      let order = await instance.orders.create({
+        amount: amount,
+          currency: 'INR',
+          receipt: "receipt#1"
+      })
+      res.status(201).json({
+        success :true,
+        order,
+        amount
+      })
+});
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
