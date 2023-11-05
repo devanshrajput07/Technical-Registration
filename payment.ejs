@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+    <h1>Review Details</h1>
+    <main>
+        <ol class="gradient-list">
+            <li>Name: <%= name %>
+            </li>
+            <li>Email: <%= email %>
+            </li>
+        </ol>
+    </main>
+
+    <form action="/is-order-complete" method="post">
+        <input type="hidden" class="form-control" name="name" id="inputEmail3" value="<%= name %>">
+        <div class="button-box">
+            <button type="submit" class="nineteen" id="rzp-button1"><span>Pay now</span> </button>
+        </div>
+
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        axios.post('/order').then((info) => {
+            console.log(info)
+            var options = {
+                "key": process,
+                "name": "BRL",
+                "description": "Test Transaction",
+                "image": "https://d33wubrfki0168.cloudfront.net/c06c72079df0344c790062d36599987d92389a1b/a12e8/assets/images/site-logo-1.svg",
+                "order_id": info.data.id,
+                "callback_url": "/is-order-complete",
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+            var rzp1 = new Razorpay(options);
+            document.getElementById('rzp-button1').onclick = function (e) {
+                rzp1.open();
+                e.preventDefault();
+            }
+        })
+    </script>
+</body>
+
+</html>
