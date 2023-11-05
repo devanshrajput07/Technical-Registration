@@ -95,6 +95,7 @@ app.get("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   if (req.isAuthenticated()) {
+    console.log(req.user)
     res.render(path.join(__dirname, "register.ejs"), { user: req.user });
   } else {
     res.redirect("/login");
@@ -102,51 +103,45 @@ app.get("/register", (req, res) => {
 });
 
 app.post('/registerteam', async (req, res) => {
-  const { leader_name, leader_email, profile_photo_url } = req.user;
-  const { team_member_2, team_member_3, team_member_4, payment_amount } = req.body;
-  if (
-    team_member_2.name &&
-    team_member_2.email &&
-    team_member_2.role &&
-    team_member_3.name &&
-    team_member_3.email &&
-    team_member_3.role &&
-    team_member_4.name &&
-    team_member_4.email &&
-    team_member_4.role &&
-    payment_amount
-  ) {
-    try {
-      const doc = new TeamModel({
-        leader_name: leader_name,
-        leader_email: leader_email,
-        profile_photo_url: profile_photo_url,
-        team_member_2: {
-          name: team_member_2.name,
-          email: team_member_2.email,
-          role: team_member_2.role,
-        },
-        team_member_3: {
-          name: team_member_3.name,
-          email: team_member_3.email,
-          role: team_member_3.role,
-        },
-        team_member_4: {
-          name: team_member_4.name,
-          email: team_member_4.email,
-          role: team_member_4.role,
-        },
-        payment_amount: payment_amount,
-      });
-      await doc.save();
-      const saved_user = await TeamModel.findOne({ email: leader_email });
-      res.status(200).json({ message: 'User registered successfully', user: saved_user });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  } else {
-    res.status(400).json({ error: 'Invalid Request' });
+  // const { leader_name, leader_email, profile_photo_url } = req.user;
+  const { team_member_2_name,
+    team_member_2_email,
+    team_member_2_role,
+    team_member_3_name,
+    team_member_3_email,
+    team_member_3_role,
+    team_member_4_name,
+    team_member_4_email,
+    team_member_4_role,
+    payment_amount } = req.body;
+  try {
+    const doc = new TeamModel({
+      leader_name: req.user.displayname,
+      leader_email: req.user.emails.value,
+      profile_photo_url: req.user.photos.value,
+      team_member_2: {
+        name: team_member_2_name,
+        email: team_member_2_email,
+        role: team_member_2_role,
+      },
+      team_member_3: {
+        name: team_member_3_name,
+        email: team_member_3_email,
+        role: team_member_3_role,
+      },
+      team_member_4: {
+        name: team_member_4_name,
+        email: team_member_4_email,
+        role: team_member_4_role,
+      },
+      payment_amount: payment_amount,
+    });
+    await doc.save();
+    const saved_user = await TeamModel.findOne({ email: leader_email });
+    res.status(200).json({ message: 'User registered successfully', user: saved_user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -154,7 +149,7 @@ app.post('/payment', async (req, res) => {
   let amount = req.body.payment_amount * 100;
   const razorpayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET 
+    key_secret: process.env.RAZORPAY_KEY_SECRET
   });
   try {
     let order = await razorpayInstance.orders.create({
