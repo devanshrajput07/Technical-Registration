@@ -166,6 +166,12 @@ app.post('/payment', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+  let info = await transporter.sendMail({
+    from: process.env.EMAIL.USER,
+    to: user.email,
+    subject: "REGISTRATION SUCCESSFULL",
+})
+res.send({ "status": "success", "message": "Please Check Your Email" })
 });
 
 app.listen(port, () => {
