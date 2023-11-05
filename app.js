@@ -142,10 +142,11 @@ app.post("/registerteam", async (req, res) => {
       payment_amount: paymentAmount,
     });
     await doc.save();
-    const saved_user = await TeamModel.findOne({ email: req.user.emails[0].value });
-    if(saved_user==email){
-    res.render(path.join(__dirname, "payment.ejs"))}else{
+    const saved_user = await TeamModel.findOne({ leader_email: req.user.emails[0].value });
+    if (!saved_user) {
       res.status(500).json({ error: "You are not registered" });
+    } else {
+      res.render(path.join(__dirname, "payment.ejs"), { paymentAmount: paymentAmount, user: req.user })
     }
   } catch (error) {
     console.error(error);
@@ -154,33 +155,38 @@ app.post("/registerteam", async (req, res) => {
 });
 
 app.post("/payment", async (req, res) => {
-  let amount = req.body.payment_amount * 100;
-  const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  });
-  try {
-    let order = await razorpayInstance.orders.create({
-      amount: amount,
-      currency: "INR",
-      receipt: "receipt#1",
+  if (req.user && req.user.displayName) {
+    let amount = req.body.payment_amount * 100;
+    const razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
-    res.status(201).json({
-      success: true,
-      order,
-      amount,
+    try {
+      let order = await razorpayInstance.orders.create({
+        amount: amount,
+        currency: "INR",
+        receipt: "receipt#1",
+      });
+      res.status(201).json({
+        success: true,
+        order,
+        amount,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+    let info = await transporter.sendMail({
+      from: process.env.EMAIL.USER,
+      to: req.user.emails[0].value,
+      subject: "REGISTRATION SUCCESSFULL",
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.send({ status: "success", message: "Please Check Your Email" });
+  } else {
+    res.status(401).json({ error: "User not authenticated" });
   }
-  let info = await transporter.sendMail({
-    from: process.env.EMAIL.USER,
-    to: user.email,
-    subject: "REGISTRATION SUCCESSFULL",
-  });
-  res.send({ status: "success", message: "Please Check Your Email" });
 });
+
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
