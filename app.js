@@ -1,15 +1,16 @@
-import dotenv from 'dotenv';
-import express from 'express';
-import session from 'express-session';
-import cors from 'cors';
-import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import ejs from 'ejs';
-import { fileURLToPath } from 'url';
-import path, { dirname } from 'path';
-import connectDB from './config/connectDb.js'
-import TeamModel from './user.js';
-import Razorpay from 'razorpay'
+import dotenv from "dotenv";
+import express from "express";
+import session from "express-session";
+import cors from "cors";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import ejs from "ejs";
+import { fileURLToPath } from "url";
+import path, { dirname } from "path";
+import connectDB from "./config/connectDb.js";
+import TeamModel from "./user.js";
+import Razorpay from "razorpay";
+import bodyParser from "body-parser";
 
 dotenv.config();
 
@@ -27,11 +28,12 @@ app.use(cors());
 connectDB(DATABASE_URL);
 
 // JSON
-app.use(express.json());
+// app.use(express.json({urlencoded: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   session({
-    secret: 'key',
+    secret: "key",
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false },
@@ -64,7 +66,7 @@ passport.deserializeUser(function (obj, cb) {
 });
 
 // Serve static files from the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/login", (req, res) => {
   res.render(path.join(__dirname, "login.ejs"));
@@ -95,83 +97,89 @@ app.get("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   if (req.isAuthenticated()) {
-    console.log(req.user)
+    console.log(req.user);
     res.render(path.join(__dirname, "register.ejs"), { user: req.user });
   } else {
     res.redirect("/login");
   }
 });
 
-app.post('/registerteam', async (req, res) => {
-  // const { leader_name, leader_email, profile_photo_url } = req.user;
-  const { team_member_2_name,
-    team_member_2_email,
-    team_member_2_role,
-    team_member_3_name,
-    team_member_3_email,
-    team_member_3_role,
-    team_member_4_name,
-    team_member_4_email,
-    team_member_4_role,
-    payment_amount } = req.body;
+app.post("/registerteam", async (req, res) => {
+  const {
+    teamMember2Name,
+    teamMember2Email,
+    teamMember2Role,
+    teamMember3Name,
+    teamMember3Email,
+    teamMember3Role,
+    teamMember4Name,
+    teamMember4Email,
+    teamMember4Role,
+    paymentAmount,
+  } = req.body;
+  console.log(teamMember2Email, teamMember3Email, teamMember4Email);
+
   try {
     const doc = new TeamModel({
-      leader_name: req.user.displayname,
-      leader_email: req.user.emails.value,
-      profile_photo_url: req.user.photos.value,
+      leader_name: req.user.displayName,
+      leader_email: req.user.emails[0].value,
+      profile_photo_url: req.user.photos[0].value,
       team_member_2: {
-        name: team_member_2_name,
-        email: team_member_2_email,
-        role: team_member_2_role,
+        name: teamMember2Name,
+        email: teamMember2Email,
+        role: teamMember2Role,
       },
       team_member_3: {
-        name: team_member_3_name,
-        email: team_member_3_email,
-        role: team_member_3_role,
+        name: teamMember3Name,
+        email: teamMember3Email,
+        role: teamMember3Role,
       },
       team_member_4: {
-        name: team_member_4_name,
-        email: team_member_4_email,
-        role: team_member_4_role,
+        name: teamMember4Name,
+        email: teamMember4Email,
+        role: teamMember4Role,
       },
-      payment_amount: payment_amount,
+      payment_amount: paymentAmount,
     });
     await doc.save();
-    const saved_user = await TeamModel.findOne({ email: leader_email });
-    res.status(200).json({ message: 'User registered successfully', user: saved_user });
+    const saved_user = await TeamModel.findOne({ email: req.user.emails[0].value });
+    if(saved_user==email){
+    res.render(path.join(__dirname, "payment.ejs"))}else{
+      res.status(500).json({ error: "You are not registered" });
+    }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-app.post('/payment', async (req, res) => {
+app.post("/payment", async (req, res) => {
   let amount = req.body.payment_amount * 100;
   const razorpayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
   });
   try {
     let order = await razorpayInstance.orders.create({
       amount: amount,
-      currency: 'INR',
-      receipt: "receipt#1"
+      currency: "INR",
+      receipt: "receipt#1",
     });
     res.status(201).json({
       success: true,
       order,
-      amount
+      amount,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
   let info = await transporter.sendMail({
     from: process.env.EMAIL.USER,
     to: user.email,
     subject: "REGISTRATION SUCCESSFULL",
-})
-res.send({ "status": "success", "message": "Please Check Your Email" })
+  });
+  res.send({ status: "success", message: "Please Check Your Email" });
 });
 
 app.listen(port, () => {
