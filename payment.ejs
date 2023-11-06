@@ -12,7 +12,7 @@
     <h1>Razorpay Payment</h1>
     <form action="/payment" method="POST">
         <!-- Include the necessary form fields -->
-        <input type="hidden" name="paymentAmount" value="<%= paymentAmount %> * 100">
+        <input type="hidden" name="paymentAmount" value="<%= paymentAmount %>">
         <button type="button" onclick="payNow()">Pay Now</button>
     </form>
 
@@ -21,13 +21,12 @@
         function payNow() {
             var options = {
                 key: "<%= process.env.RAZORPAY_KEY_ID %>",
-                amount: "<%= paymentAmount %> * 100", 
+                amount: "<%= paymentAmount * 100 %>", 
                 currency: "INR",
                 name: "BRL",
                 description: "Test Transaction",
                 image: "", 
                 handler: function (response) {
-                    // After successful payment, handle the response
                     alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
                 },
                 prefill: {

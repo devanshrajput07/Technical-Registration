@@ -156,7 +156,7 @@ app.post("/registerteam", async (req, res) => {
 
 app.post("/payment", async (req, res) => {
   if (req.user && req.user.displayName) {
-    let amount = req.body.payment_amount * 100;
+    let amount = req.body.paymentAmount * 100;
     const razorpayInstance = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -186,7 +186,6 @@ app.post("/payment", async (req, res) => {
     res.status(401).json({ error: "User not authenticated" });
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
