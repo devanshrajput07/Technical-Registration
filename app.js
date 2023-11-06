@@ -69,7 +69,7 @@ passport.deserializeUser(function (obj, cb) {
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/login", (req, res) => {
-  res.render(path.join(__dirname, "login.ejs"));
+  res.render(path.join(__dirname, "views/login.ejs"));
 });
 
 app.get(
@@ -95,10 +95,19 @@ app.get("/logout", (req, res) => {
   });
 });
 
-app.get("/register", (req, res) => {
-  if (req.isAuthenticated()) {
-    console.log(req.user);
-    res.render(path.join(__dirname, "register.ejs"), { user: req.user });
+app.get("/register", async (req, res) => {
+  if (req.isAuthenticated() && req.user && req.user.displayName) {
+    try {
+      const existingUser = await TeamModel.findOne({ leader_email: req.user.emails[0].value });
+      if (existingUser) {
+        res.render(path.join(__dirname, "views/alreadyRegistered.ejs"), { user: req.user });
+      } else {
+        res.render(path.join(__dirname, "views/register.ejs"), { user: req.user });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   } else {
     res.redirect("/login");
   }
@@ -106,6 +115,7 @@ app.get("/register", (req, res) => {
 
 app.post("/registerteam", async (req, res) => {
   const {
+    teamleaderRole,
     teamMember2Name,
     teamMember2Email,
     teamMember2Role,
@@ -124,6 +134,7 @@ app.post("/registerteam", async (req, res) => {
       leader_name: req.user.displayName,
       leader_email: req.user.emails[0].value,
       profile_photo_url: req.user.photos[0].value,
+      leader_role: teamleaderRole,
       team_member_2: {
         name: teamMember2Name,
         email: teamMember2Email,
@@ -146,7 +157,7 @@ app.post("/registerteam", async (req, res) => {
     if (!saved_user) {
       res.status(500).json({ error: "You are not registered" });
     } else {
-      res.render(path.join(__dirname, "payment.ejs"), { paymentAmount: paymentAmount, user: req.user })
+      res.render(path.join(__dirname, "views/payment.ejs"), { paymentAmount: paymentAmount, user: req.user })
     }
   } catch (error) {
     console.error(error);
@@ -155,7 +166,7 @@ app.post("/registerteam", async (req, res) => {
 });
 
 app.post("/payment", async (req, res) => {
-  if (req.user && req.user.displayName) {
+  if (req.isAuthenticated() && req.user && req.user.displayName) {
     let amount = req.body.paymentAmount * 100;
     const razorpayInstance = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
@@ -166,22 +177,47 @@ app.post("/payment", async (req, res) => {
         amount: amount,
         currency: "INR",
         receipt: "receipt#1",
-      });
+      })
       res.status(201).json({
         success: true,
         order,
         amount,
+      })
+      res.render(path.join(__dirname, "views/paymentdone.ejs"), { order, amount, user: req.user })
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
       });
+
+      let info = await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: req.user.emails[0].value,
+        subject: "Payment Successful",
+        text: "Your payment was successful. Thank you for your purchase!",
+      });
+      console.log("Email sent: " + info.response);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.render(path.join(__dirname, "views/payment.ejs"), { alert: "Payment failed", user: req.user })
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      let info = await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: req.user.emails[0].value,
+        subject: "Payment Failed",
+        text: "Your payment has failed. Please try again later.",
+      });
+      console.log("Email sent: " + info.response);
     }
-    let info = await transporter.sendMail({
-      from: process.env.EMAIL.USER,
-      to: req.user.emails[0].value,
-      subject: "REGISTRATION SUCCESSFULL",
-    });
-    res.send({ status: "success", message: "Please Check Your Email" });
   } else {
     res.status(401).json({ error: "User not authenticated" });
   }

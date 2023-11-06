@@ -9,10 +9,16 @@ const TeamSchema = new mongoose.Schema({
     },
     leader_email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     profile_photo_url: {
         type: String,
+        required: true
+    },
+    leader_role: {
+        type: String,
+        enum: ['Bid', 'Code'],
         required: true
     },
     team_member_2: {
@@ -22,7 +28,8 @@ const TeamSchema = new mongoose.Schema({
         },
         email: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
         role: {
             type: String,
@@ -37,7 +44,8 @@ const TeamSchema = new mongoose.Schema({
         },
         email: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
         role: {
             type: String,
@@ -52,7 +60,8 @@ const TeamSchema = new mongoose.Schema({
         },
         email: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
         role: {
             type: String,
