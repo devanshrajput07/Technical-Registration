@@ -8,7 +8,7 @@ let transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: process.env.EMAIL_USER, // Admin Gmail ID
-    pass: process.env.EMAIL_PASS, // Admin Gmail Password
+    pass: process.env.EMAIL_PASSWORD, // Admin Gmail Password
   },
 })
 
