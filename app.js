@@ -11,6 +11,7 @@ import connectDB from "./config/connectDb.js";
 import TeamModel from "./user.js";
 import Razorpay from "razorpay";
 import bodyParser from "body-parser";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -221,6 +222,11 @@ app.post("/payment", async (req, res) => {
   } else {
     res.status(401).json({ error: "User not authenticated" });
   }
+});
+
+app.post('/paymentdone', (req, res) => {
+  const paymentId = req.body.paymentId;
+  res.render(path.join(__dirname, "views/paymentdone.ejs"), { paymentId: paymentId });
 });
 
 app.listen(port, () => {

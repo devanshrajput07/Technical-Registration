@@ -27,8 +27,21 @@
                 description: "Test Transaction",
                 image: "", 
                 handler: function (response) {
-                    alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
-                    window.location.href = "http://localhost:8000/views/paymentdone.ejs";
+                    alert("Payment successful! Payment ID: " + response.razorpay_payment_id)
+                    fetch('/paymentdone', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ paymentId: response.razorpay_payment_id })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
                 },
                 prefill: {
                     name: "<%= user.displayName %>",
