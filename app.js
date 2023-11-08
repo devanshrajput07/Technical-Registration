@@ -12,6 +12,7 @@ import TeamModel from "./user.js";
 import Razorpay from "razorpay";
 import bodyParser from "body-parser";
 import nodemailer from "nodemailer";
+import sendEmail from './config/emailConfig.js';
 
 dotenv.config();
 
@@ -194,7 +195,15 @@ app.post("/payment", async (req, res) => {
     } catch (error) {
       console.error(error);
       res.render(path.join(__dirname, "views/payment.ejs"), { alert: "Payment failed", user: req.user })
-    }
+    } then(result => {
+      message= "Your transaction was successful."
+      return response.json({
+        success: true,
+        redirect: true,
+        message: message,
+        url: "/paymentdone"
+      })
+    })
   } else {
     res.status(401).json({ error: "User not authenticated" });
   }
