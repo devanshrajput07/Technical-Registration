@@ -185,39 +185,15 @@ app.post("/payment", async (req, res) => {
         amount,
       })
       res.render(path.join(__dirname, "views/paymentdone.ejs"), { order, amount, user: req.user })
-      let transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      });
-
-      let info = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: req.user.emails[0].value,
-        subject: "Payment Successful",
-        text: "Your payment was successful. Thank you for your purchase!",
+      sendEmail({
+        email: req.user.emails[0].value,
+        subject: "Payment verification",
+        message: "Your transaction was successful.",
       });
       console.log("Email sent: " + info.response);
     } catch (error) {
       console.error(error);
       res.render(path.join(__dirname, "views/payment.ejs"), { alert: "Payment failed", user: req.user })
-      let transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      });
-
-      let info = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: req.user.emails[0].value,
-        subject: "Payment Failed",
-        text: "Your payment has failed. Please try again later.",
-      });
-      console.log("Email sent: " + info.response);
     }
   } else {
     res.status(401).json({ error: "User not authenticated" });

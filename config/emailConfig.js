@@ -1,15 +1,24 @@
 import dotenv from 'dotenv'
 dotenv.config()
-import nodemailer from 'nodemailer'
+const nodemailer = require('nodemailer');
 
-let transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER, // Admin Gmail ID
-    pass: process.env.EMAIL_PASSWORD, // Admin Gmail Password
-  },
-})
+const sendEmail = async ({ email, subject, message }) => {
+  const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
 
-export default transporter
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: subject,
+    text: message,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = sendEmail;
