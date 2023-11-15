@@ -1,4 +1,5 @@
 .env
 node_modules/
-
+apidocumentation
 auth
+package-lock.json
