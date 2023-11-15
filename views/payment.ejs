@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +9,7 @@
     <!-- Include the Razorpay script -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
+
 <body>
     <h1>Razorpay Payment</h1>
     <form action="/payment" method="POST">
@@ -21,13 +23,14 @@
         function payNow() {
             var options = {
                 key: "<%= process.env.RAZORPAY_KEY_ID %>",
-                amount: "<%= paymentAmount * 100 %>", 
+                amount: "<%= paymentAmount * 100 %>",
                 currency: "INR",
                 name: "BRL",
                 description: "Test Transaction",
-                image: "", 
+                image: "",
                 handler: function (response) {
                     alert("Payment successful! Payment ID: " + response.razorpay_payment_id)
+                    window.location.href = "http://localhost:8000/views/paymentdone.ejs";
                     fetch('/paymentdone', {
                         method: 'POST',
                         headers: {
@@ -35,13 +38,21 @@
                         },
                         body: JSON.stringify({ paymentId: response.razorpay_payment_id })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                        }).then(result => {
+                            message = "Your transaction was successful."
+                            return response.json({
+                                success: true,
+                                redirect: true,
+                                message: message,
+                                url: "/paymentdone"
+                            })
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 },
                 prefill: {
                     name: "<%= user.displayName %>",
@@ -56,4 +67,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -168,7 +168,7 @@ app.post("/registerteam", async (req, res) => {
 });
 
 app.post("/payment", async (req, res) => {
-  if (req.isAuthenticated() && req.user && req.user.displayName) {
+  if (req.isAuthenticated()) {
     let amount = req.body.paymentAmount * 100;
     const razorpayInstance = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
@@ -195,15 +195,7 @@ app.post("/payment", async (req, res) => {
     } catch (error) {
       console.error(error);
       res.render(path.join(__dirname, "views/payment.ejs"), { alert: "Payment failed", user: req.user })
-    } then(result => {
-      message= "Your transaction was successful."
-      return response.json({
-        success: true,
-        redirect: true,
-        message: message,
-        url: "/paymentdone"
-      })
-    })
+    }
   } else {
     res.status(401).json({ error: "User not authenticated" });
   }
