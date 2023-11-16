@@ -30,7 +30,6 @@ app.use(cors());
 connectDB(DATABASE_URL);
 
 // JSON
-// app.use(express.json({urlencoded: true}));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
@@ -53,7 +52,7 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
-    function (accessToken, refreshToken, profile, cb) {
+    function (profile, cb) {
       cb(null, profile);
     }
   )
