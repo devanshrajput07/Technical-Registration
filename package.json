@@ -2,7 +2,7 @@
   "name": "technical-registration",
   "version": "1.0.0",
   "engines": {
-    "node": "18.17.1"
+    "node": "16.x"
   },
   "description": "**Google Authentication and Technical registration:**",
   "main": "index.js",

@@ -28,6 +28,7 @@
                 name: "BRL",
                 description: "Test Transaction",
                 image: "",
+                "callback_url": "/paymentdone",
                 handler: function (response) {
                     alert("Payment successful! Payment ID: " + response.razorpay_payment_id)
                     window.location.href = "http://localhost:8000/views/paymentdone.ejs";
