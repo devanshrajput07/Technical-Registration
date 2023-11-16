@@ -52,7 +52,7 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
-    function (profile, cb) {
+    function (accessToken, refreshToken, profile, cb) {
       cb(null, profile);
     }
   )
