@@ -4,15 +4,14 @@ import session from "express-session";
 import cors from "cors";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import ejs from "ejs";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 import connectDB from "./config/connectDb.js";
-import TeamModel from "./user.js";
+import TeamModel from "./model/user.js";
 import Razorpay from "razorpay";
 import bodyParser from "body-parser";
-import nodemailer from "nodemailer";
 import sendEmail from "./config/emailConfig.js";
+import Payment from "./model/payment.js";
 
 dotenv.config();
 
@@ -87,36 +86,34 @@ app.get(
 );
 
 app.get("/logout", (req, res) => {
-  req.logout(function (err) {
+  req.logout();
+  req.session.destroy((err) => {
     if (err) {
-      console.log(err);
-    } else {
-      res.redirect("/login");
+      console.error("Error while destroying session:", err);
     }
+    res.redirect("/login");
   });
 });
 
 app.get("/register", async (req, res) => {
-  if (req.isAuthenticated() && req.user && req.user.displayName) {
-    try {
+  try {
+    if (req.isAuthenticated() && req.user && req.user.displayName) {
       const existingUser = await TeamModel.findOne({
         leader_email: req.user.emails[0].value,
       });
       if (existingUser) {
-        res.render(path.join(__dirname, "views/alreadyRegistered.ejs"), {
-          user: req.user,
-        });
-      } else {
-        res.render(path.join(__dirname, "views/register.ejs"), {
+        return res.render(path.join(__dirname, "views/alreadyRegistered.ejs"), {
           user: req.user,
         });
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      return res.render(path.join(__dirname, "views/register.ejs"), {
+        user: req.user,
+      });
     }
-  } else {
     res.redirect("/login");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
@@ -190,11 +187,6 @@ app.post("/payment", async (req, res) => {
         currency: "INR",
         receipt: "receipt#1",
       });
-      res.status(201).json({
-        success: true,
-        order,
-        amount,
-      });
       res.render(path.join(__dirname, "views/paymentdone.ejs"), {
         order,
         amount,
@@ -205,24 +197,44 @@ app.post("/payment", async (req, res) => {
         subject: "Payment verification",
         message: "Your transaction was successful.",
       });
-      console.log("Email sent: " + info.response);
+      console.log("Email sent: Payment successful.");
+      return res.status(201).json({
+        success: true,
+        order,
+        amount,
+      });
     } catch (error) {
       console.error(error);
-      res.render(path.join(__dirname, "views/payment.ejs"), {
+      return res.render(path.join(__dirname, "views/payment.ejs"), {
         alert: "Payment failed",
         user: req.user,
       });
     }
   } else {
-    res.status(401).json({ error: "User not authenticated" });
+    return res.status(401).json({ error: "User not authenticated" });
   }
 });
 
-app.post("/paymentdone", (req, res) => {
-  const paymentId = req.body.paymentId;
-  res.render(path.join(__dirname, "views/paymentdone.ejs"), {
-    paymentId: paymentId,
+app.post("/paymentdone", async (req, res) => {
+  const { paymentId, orderId, signature } = req.body;
+  const payment = new Payment({
+    razorpay_order_id: orderId,
+    razorpay_payment_id: paymentId,
+    razorpay_signature: signature,
+    user: req.user._id,
   });
+  try {
+    await payment.save();
+    return res.render(path.join(__dirname, "views/paymentdone.ejs"), {
+      paymentId: paymentId,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.render(path.join(__dirname, "views/payment.ejs"), {
+      alert: "Payment failed",
+      user: req.user,
+    });
+  }
 });
 
 app.listen(port, () => {
