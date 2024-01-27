@@ -16,7 +16,10 @@ const TeamSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    validate: [validateEmail, "Please use an email from the akgec.ac.in domain"],
+    validate: [
+      validateEmail,
+      "Please use an email from the akgec.ac.in domain",
+    ],
   },
   profile_photo_url: {
     type: String,
@@ -36,7 +39,10 @@ const TeamSchema = new mongoose.Schema({
       type: String,
       required: true,
       unique: true,
-      validate: [validateEmail, "Please use an email from the akgec.ac.in domain"],
+      validate: [
+        validateEmail,
+        "Please use an email from the akgec.ac.in domain",
+      ],
     },
     role: {
       type: String,
@@ -53,7 +59,10 @@ const TeamSchema = new mongoose.Schema({
       type: String,
       required: true,
       unique: true,
-      validate: [validateEmail, "Please use an email from the akgec.ac.in domain"],
+      validate: [
+        validateEmail,
+        "Please use an email from the akgec.ac.in domain",
+      ],
     },
     role: {
       type: String,
@@ -70,7 +79,10 @@ const TeamSchema = new mongoose.Schema({
       type: String,
       required: true,
       unique: true,
-      validate: [validateEmail, "Please use an email from the akgec.ac.in domain"],
+      validate: [
+        validateEmail,
+        "Please use an email from the akgec.ac.in domain",
+      ],
     },
     role: {
       type: String,

@@ -12,7 +12,7 @@ import TeamModel from "./user.js";
 import Razorpay from "razorpay";
 import bodyParser from "body-parser";
 import nodemailer from "nodemailer";
-import sendEmail from './config/emailConfig.js';
+import sendEmail from "./config/emailConfig.js";
 
 dotenv.config();
 
@@ -99,11 +99,17 @@ app.get("/logout", (req, res) => {
 app.get("/register", async (req, res) => {
   if (req.isAuthenticated() && req.user && req.user.displayName) {
     try {
-      const existingUser = await TeamModel.findOne({ leader_email: req.user.emails[0].value });
+      const existingUser = await TeamModel.findOne({
+        leader_email: req.user.emails[0].value,
+      });
       if (existingUser) {
-        res.render(path.join(__dirname, "views/alreadyRegistered.ejs"), { user: req.user });
+        res.render(path.join(__dirname, "views/alreadyRegistered.ejs"), {
+          user: req.user,
+        });
       } else {
-        res.render(path.join(__dirname, "views/register.ejs"), { user: req.user });
+        res.render(path.join(__dirname, "views/register.ejs"), {
+          user: req.user,
+        });
       }
     } catch (error) {
       console.error(error);
@@ -154,11 +160,16 @@ app.post("/registerteam", async (req, res) => {
       payment_amount: paymentAmount,
     });
     await doc.save();
-    const saved_user = await TeamModel.findOne({ leader_email: req.user.emails[0].value });
+    const saved_user = await TeamModel.findOne({
+      leader_email: req.user.emails[0].value,
+    });
     if (!saved_user) {
       res.status(500).json({ error: "You are not registered" });
     } else {
-      res.render(path.join(__dirname, "views/payment.ejs"), { paymentAmount: paymentAmount, user: req.user })
+      res.render(path.join(__dirname, "views/payment.ejs"), {
+        paymentAmount: paymentAmount,
+        user: req.user,
+      });
     }
   } catch (error) {
     console.error(error);
@@ -178,13 +189,17 @@ app.post("/payment", async (req, res) => {
         amount: amount,
         currency: "INR",
         receipt: "receipt#1",
-      })
+      });
       res.status(201).json({
         success: true,
         order,
         amount,
-      })
-      res.render(path.join(__dirname, "views/paymentdone.ejs"), { order, amount, user: req.user })
+      });
+      res.render(path.join(__dirname, "views/paymentdone.ejs"), {
+        order,
+        amount,
+        user: req.user,
+      });
       sendEmail({
         email: req.user.emails[0].value,
         subject: "Payment verification",
@@ -193,16 +208,21 @@ app.post("/payment", async (req, res) => {
       console.log("Email sent: " + info.response);
     } catch (error) {
       console.error(error);
-      res.render(path.join(__dirname, "views/payment.ejs"), { alert: "Payment failed", user: req.user })
+      res.render(path.join(__dirname, "views/payment.ejs"), {
+        alert: "Payment failed",
+        user: req.user,
+      });
     }
   } else {
     res.status(401).json({ error: "User not authenticated" });
   }
 });
 
-app.post('/paymentdone', (req, res) => {
+app.post("/paymentdone", (req, res) => {
   const paymentId = req.body.paymentId;
-  res.render(path.join(__dirname, "views/paymentdone.ejs"), { paymentId: paymentId });
+  res.render(path.join(__dirname, "views/paymentdone.ejs"), {
+    paymentId: paymentId,
+  });
 });
 
 app.listen(port, () => {

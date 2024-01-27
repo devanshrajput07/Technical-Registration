@@ -13,9 +13,9 @@ Callback URL: Handle the Google OAuth callback to retrieve user information from
 Method: POST
 Description: Register a user with Google-authenticated details.
 Body:
-{ leader_name: [automatically obtained from Google OAuth], 
-leader_email: [automatically obtained from Google OAuth], profile_photo_url: [automatically obtained from Google OAuth], 
-team_member_2: { name: [provided by the user], email: [provided by the user], role: "Bid" or "Code" (ask the user) }, 
+{ leader_name: [automatically obtained from Google OAuth],
+leader_email: [automatically obtained from Google OAuth], profile_photo_url: [automatically obtained from Google OAuth],
+team_member_2: { name: [provided by the user], email: [provided by the user], role: "Bid" or "Code" (ask the user) },
 team_member_3: { name: [provided by the user], email: [provided by the user], role: "Bid" or "Code" (ask the user) }
 team_member_4: { name: [provided by the user], email: [provided by the user], role: "Bid" or "Code" (ask the user) }, payment_amount: 20 }
 Authentication: Only users authenticated through Google OAuth can access this route.
